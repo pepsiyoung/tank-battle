@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>坦克大战 · Tank Battle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="glow glow-a" aria-hidden="true"></div>
+  <div class="glow glow-b" aria-hidden="true"></div>
+
+  <main class="app">
+    <header class="topbar glass">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <div class="brand-text">
+          <h1>TANK BATTLE</h1>
+          <p>坦克大战 · FC 经典重制</p>
+        </div>
+      </div>
+      <div class="top-stats">
+        <div class="stat">
+          <span class="stat-label">关卡</span>
+          <span class="stat-value" id="hudStage">1</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">基地</span>
+          <div class="base-hp" id="hudBase"></div>
+        </div>
+        <div class="stat">
+          <span class="stat-label">剩余敌军</span>
+          <div class="enemy-icons" id="hudEnemies"></div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="btn btn-ghost" id="btnSound" title="声音开关">🔊</button>
+        <button class="btn btn-ghost" id="btnPause" title="暂停 (P)">⏸</button>
+      </div>
+    </header>
+
+    <section class="battlefield">
+      <aside class="panel glass panel-left" id="panelP1">
+        <div class="panel-head">
+          <span class="tank-dot tank-dot--p1"></span>
+          <span class="panel-title">玩家 1</span>
+          <span class="panel-badge" id="p1Badge">P1</span>
+        </div>
+        <div class="panel-row">
+          <span class="panel-label">得分</span>
+          <span class="panel-score" id="p1Score">0</span>
+        </div>
+        <div class="panel-row">
+          <span class="panel-label">生命</span>
+          <div class="lives" id="p1Lives"></div>
+        </div>
+        <div class="panel-row">
+          <span class="panel-label">火力</span>
+          <div class="power" id="p1Power"></div>
+        </div>
+        <div class="panel-row">
+          <span class="panel-label">绝招</span>
+          <div class="ult" id="p1Ult"></div>
+        </div>
+        <div class="key-hint">
+          <div><kbd>W A S D</kbd><span>移动</span></div>
+          <div><kbd>SPACE</kbd><span>射击</span></div>
+          <div><kbd>按住 2s</kbd><span>蓄力破坏死光</span></div>
+        </div>
+      </aside>
+
+      <div class="canvas-wrap glass">
+        <canvas id="game" width="624" height="624"></canvas>
+        <div class="vignette" aria-hidden="true"></div>
+      </div>
+
+      <aside class="panel glass panel-right" id="panelP2">
+        <div class="panel-head">
+          <span class="tank-dot tank-dot--p2"></span>
+          <span class="panel-title">玩家 2</span>
+          <span class="panel-badge" id="p2Badge">P2</span>
+        </div>
+        <div class="panel-row">
+          <span class="panel-label">得分</span>
+          <span class="panel-score" id="p2Score">0</span>
+        </div>
+        <div class="panel-row">
+          <span class="panel-label">生命</span>
+          <div class="lives" id="p2Lives"></div>
+        </div>
+        <div class="panel-row">
+          <span class="panel-label">火力</span>
+          <div class="power" id="p2Power"></div>
+        </div>
+        <div class="panel-row">
+          <span class="panel-label">绝招</span>
+          <div class="ult" id="p2Ult"></div>
+        </div>
+        <div class="key-hint">
+          <div><kbd>↑ ← ↓ →</kbd><span>移动</span></div>
+          <div><kbd>ENTER</kbd><span>射击</span></div>
+          <div><kbd>按住 2s</kbd><span>蓄力破坏死光</span></div>
+        </div>
+      </aside>
+    </section>
+
+    <footer class="footer">
+      <span>P / ESC 暂停</span>
+      <span class="sep">·</span>
+      <span>按住发射 2 秒蓄力破坏死光 · 守护基地</span>
+    </footer>
+  </main>
+
+  <!-- 开始界面 -->
+  <div class="overlay" id="overlayStart">
+    <div class="modal glass">
+      <div class="modal-title">
+        <h2>TANK BATTLE</h2>
+        <p class="subtitle">坦克大战</p>
+      </div>
+      <div class="mode-select">
+        <button class="btn btn-mode" data-mode="1">
+          <span class="mode-ico">🪖</span>
+          <span class="mode-name">单人模式</span>
+          <span class="mode-desc">WASD + 空格</span>
+        </button>
+        <button class="btn btn-mode" data-mode="2">
+          <span class="mode-ico">🪖🪖</span>
+          <span class="mode-name">双人模式</span>
+          <span class="mode-desc">P1 WASD · P2 方向键</span>
+        </button>
+      </div>
+      <p class="start-hint">选择模式开始游戏</p>
+    </div>
+  </div>
+
+  <!-- 暂停界面 -->
+  <div class="overlay hidden" id="overlayPause">
+    <div class="modal glass modal-small">
+      <div class="modal-title"><h2>已暂停</h2></div>
+      <button class="btn btn-primary" id="btnResume">继续游戏</button>
+      <button class="btn btn-ghost" id="btnRestartPause">重新开始</button>
+    </div>
+  </div>
+
+  <!-- 过关 / 结束界面 -->
+  <div class="overlay hidden" id="overlayEnd">
+    <div class="modal glass modal-small">
+      <div class="modal-title">
+        <h2 id="endTitle">阶段完成</h2>
+        <p class="subtitle" id="endSub"></p>
+      </div>
+      <div class="end-stats">
+        <div><span>关卡</span><b id="endStage">1</b></div>
+        <div><span>P1 得分</span><b id="endP1">0</b></div>
+        <div><span>P2 得分</span><b id="endP2">0</b></div>
+      </div>
+      <div class="end-stats victory-stats hidden" id="victoryStats">
+        <div><span>消灭坦克</span><b id="vKills">0</b></div>
+        <div><span>使用绝招</span><b id="vUlts">0</b></div>
+        <div><span>普通射击</span><b id="vShots">0</b></div>
+        <div><span>总得分</span><b id="vScore">0</b></div>
+      </div>
+      <button class="btn btn-primary" id="btnNext">下一关</button>
+      <button class="btn btn-ghost" id="btnHome">返回主菜单</button>
+    </div>
+  </div>
+
+  <!-- 触屏虚拟按键（仅触屏设备显示） -->
+  <div class="touch-controls" id="touchControls">
+    <div class="dpad">
+      <button data-dir="up" aria-label="上">▲</button>
+      <button data-dir="left" aria-label="左">◀</button>
+      <button data-dir="right" aria-label="右">▶</button>
+      <button data-dir="down" aria-label="下">▼</button>
+    </div>
+    <button class="fire-btn" id="touchFire" aria-label="射击">●</button>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

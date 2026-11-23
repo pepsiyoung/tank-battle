@@ -8,7 +8,7 @@
 
 | 实现 | 位置 | 说明 |
 |------|------|------|
-| 网页版 | 仓库根目录 `index.html` / `style.css` / `game.js` | 原生 HTML + CSS + Canvas 2D，零依赖零构建，2026-11-18 由 `/Users/protoss/Downloads/tank-battle` 原样复刻（逐字节一致） |
+| 网页版 | `html5/` 目录（`index.html` / `style.css` / `game.js`） | 原生 HTML + CSS + Canvas 2D，零依赖零构建，2026-11-18 由 `/Users/protoss/Downloads/tank-battle` 原样复刻（逐字节一致） |
 | Unity 版 | `Assets/` + `Packages/` + `ProjectSettings/` | 原生 Unity 2022.3 LTS 工程，C# 复刻同一套玩法，**3D 正交俯视渲染**：结构物为 3D 模型（团结 AI 生成，缺失时程序化几何体兜底），平面贴图/音效运行时程序化生成（2026-11-20 由 2D 像素版改造为 3D） |
 
 > 两版玩法参数仍完全一致（见上）；视觉呈现不同：Unity 版为 3D 正交俯视，网页版保持 2D Canvas 像素风，视觉层互不要求同步。
@@ -41,10 +41,10 @@
 ### 网页版
 
 ```bash
-cd /Users/protoss/Code/u3d/tank-battle
+cd html5
 python3 -m http.server 8765     # 浏览器打开 http://127.0.0.1:8765/
-# 或直接：open index.html
-node --check game.js            # JS 语法校验
+# 或直接：open index.html（在 html5/ 目录下）
+node --check game.js            # JS 语法校验（在 html5/ 目录下）
 ```
 
 ### Unity 版
@@ -79,7 +79,7 @@ node --check game.js            # JS 语法校验
 
 ### 校验
 
-- 网页版：`node --check game.js`，浏览器实际开局验证
+- 网页版：`node --check html5/game.js`，浏览器实际开局验证
 - Unity 版：2026-11-20 已在 Unity 中国版 2022.3.62f3c1 中实际编译（零错误零警告）并通过 Play 模式试玩验证（相机/光照/地形池/坦克朝向与染色/基地耐久/贴片/死光）。改动后仍以 `unity_editor.refresh` 的 Console 错误为准；3D 改版录屏见 `screenshots/tank3d_pass2.mp4`
 - Windows 独立版：`BuildPipeline.BuildPlayer`（StandaloneWindows64）打包到 `Builds/Windows/`（已在 .gitignore）；打包后启动 exe 检查 `%USERPROFILE%\AppData\LocalLow\DefaultCompany\tank-battle\Player.log` 无异常
 
@@ -90,12 +90,12 @@ node --check game.js            # JS 语法校验
 - 本机没有 dotnet/mono，无法在编辑器之外单独编译 C#
 - Unity 版使用系统字体（PingFang SC / Microsoft YaHei 等）替代网页版的 Orbitron，数字与标题字形略有差异
 - 网页版的玻璃模糊、背景网格/光晕等纯装饰效果未在 Unity 版复刻，其余玩法与界面结构保持一致
-- 两套实现的调参常量需手动同步（`Conf.cs` ↔ `game.js` 顶部常量）
+- 两套实现的调参常量需手动同步（`Conf.cs` ↔ `html5/game.js` 顶部常量）
 
 ## 后续交互指引
 
 - 与用户交流一律使用简体中文（代码、命令、路径、标识符等保留原文）。
-- 修改玩法参数：网页版改 `game.js` 顶部常量，Unity 版改 `Assets/Scripts/Conf.cs`，两边保持一致。
+- 修改玩法参数：网页版改 `html5/game.js` 顶部常量，Unity 版改 `Assets/Scripts/Conf.cs`，两边保持一致。
 - 新增地形需要同时更新：`TileType`、`Maps.LoadMap` 字符映射、`Conf` 配色、`SpriteFactory.Tile`、`GameRules.TileSolid`；网页版对应 `CHAR_MAP`、`tileSolid`、`drawTile`。
 - 3D 渲染改动集中在 `SceneView.cs`：新增平面层须按高度分层表给 Y 值；新增结构物走 `ModelRegistry` + 程序化兜底双路径。
 - 本文件与代码不符时以代码为准，并及时修订本文件。

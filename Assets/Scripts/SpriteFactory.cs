@@ -298,6 +298,34 @@ namespace TankBattle
             }
         }
 
+        // 3D 地面整张贴图：13×13 格 EmptyTile 底色 + 网格线（SceneView 地面用）
+        static Texture2D _groundTex;
+
+        public static Texture2D Ground()
+        {
+            if (_groundTex != null) return _groundTex;
+
+            int s = (int)Conf.FieldW;
+            var p = new PixelPainter(s, s);
+            p.FillRect(-s * 0.5f, -s * 0.5f, s, s, Conf.EmptyTile);
+            Color line = Conf.Rgba(120, 160, 255, 0.05f);
+            for (int i = 0; i < Conf.Cols; i++)
+            {
+                float x = -s * 0.5f + i * Conf.Tile;
+                p.FillRect(x, -s * 0.5f, 1f, s, line);
+                float y = -s * 0.5f + i * Conf.Tile;
+                p.FillRect(-s * 0.5f, y, s, 1f, line);
+            }
+
+            var tex = new Texture2D(s, s, TextureFormat.RGBA32, false);
+            tex.filterMode = FilterMode.Point;
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.SetPixels32(p.Buf);
+            tex.Apply(false, false);
+            _groundTex = tex;
+            return tex;
+        }
+
         /* ---------------- 坦克 ---------------- */
 
         public static Sprite Tank(Color body, Color light, string label)

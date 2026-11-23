@@ -11,12 +11,15 @@ namespace TankBattle
         public Game G;
         public SceneView View;
         public GameUI Ui;
+        AudioSource bgmSrc;
 
         readonly HashSet<KeyCode> vkeys = new HashSet<KeyCode>();
         bool vFire;
 
         void Awake()
         {
+            ApplyDisplayFit();
+
             G = new Game();
 
             View = new SceneView();
@@ -32,7 +35,26 @@ namespace TankBattle
             src.volume = 0.42f;
             AudioSynth.Init(src);
 
+            // 背景音乐：程序化 8-bit 循环，随全局静音/暂停联动
+            bgmSrc = gameObject.AddComponent<AudioSource>();
+            bgmSrc.playOnAwake = false;
+            bgmSrc.spatialBlend = 0f;
+            bgmSrc.loop = true;
+            bgmSrc.volume = 0.26f;
+            bgmSrc.clip = AudioSynth.BgmClip(); // 菜单不播放，StartStage 开局时才响起
+
             Ui.ShowStart();
+        }
+
+        // 独立版窗口模式：窗口 = 显示器原生分辨率的 2/3（保持宽高比），不铺满屏幕。
+        // 实测 Screen.SetResolution 按物理像素生效，无需 DPI 缩放补偿
+        static void ApplyDisplayFit()
+        {
+            if (Application.isEditor) return;
+            Resolution r = Screen.currentResolution;
+            int w = Mathf.RoundToInt(r.width * 2f / 3f);
+            int h = Mathf.RoundToInt(r.height * 2f / 3f);
+            Screen.SetResolution(w, h, FullScreenMode.Windowed);
         }
 
         void Update()
@@ -187,6 +209,13 @@ namespace TankBattle
                 if (G.Profiles[i].Lives > 0) G.Tanks.Add(CreatePlayerTank(i));
             }
 
+            // 开局才播放 BGM，每关从头响起
+            if (bgmSrc != null)
+            {
+                bgmSrc.Stop();
+                bgmSrc.Play();
+            }
+
             if (Ui != null) Ui.UpdateHud(G);
         }
 
@@ -212,22 +241,26 @@ namespace TankBattle
                 G.State = "paused";
                 Ui.ShowPause();
                 AudioSynth.Pause();
+                if (bgmSrc != null) bgmSrc.Pause();
             }
             else if (G.State == "paused")
             {
                 G.State = "playing";
                 Ui.HideOverlays();
+                if (bgmSrc != null) bgmSrc.UnPause();
             }
         }
 
         public void ToggleSound()
         {
             AudioSynth.Enabled = !AudioSynth.Enabled;
+            if (bgmSrc != null) bgmSrc.mute = !AudioSynth.Enabled;
             Ui.SetSoundLabel(AudioSynth.Enabled);
         }
 
         public void GoHome()
         {
+            if (bgmSrc != null) bgmSrc.Stop();
             G.State = "menu";
             G.Tanks.Clear();
             G.Bullets.Clear();

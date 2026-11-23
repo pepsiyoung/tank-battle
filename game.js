@@ -752,9 +752,14 @@ function fireBeam(t) {
   const tx0 = Math.floor(x0 / TILE), tx1 = Math.ceil(x1 / TILE) - 1;
   const ty0 = Math.floor(y0 / TILE), ty1 = Math.ceil(y1 / TILE) - 1;
   let baseHit = false;
+  // 施放者所在格除外：坦克足印比格子小 4px 且有偏移，光束矩形与脚下格子重叠，
+  // 若脚下是草地会被误变成灼烧地（站在草丛放大招烧死自己）
+  const selfX0 = Math.floor(t.x / TILE), selfX1 = Math.floor((t.x + t.size - 1) / TILE);
+  const selfY0 = Math.floor(t.y / TILE), selfY1 = Math.floor((t.y + t.size - 1) / TILE);
   for (let ty = ty0; ty <= ty1; ty++) {
     for (let tx = tx0; tx <= tx1; tx++) {
       if (tx < 0 || ty < 0 || tx >= COLS || ty >= ROWS) continue;
+      if (tx >= selfX0 && tx <= selfX1 && ty >= selfY0 && ty <= selfY1) continue;
       if (!rectHits(x0, y0, x1 - x0, y1 - y0, tx * TILE, ty * TILE, TILE, TILE)) continue;
       const tile = G.grid[ty][tx];
       if (tile === EMPTY) continue;

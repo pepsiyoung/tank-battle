@@ -235,5 +235,92 @@ namespace TankBattle
         {
             Play(Clip("pause", ToneBuf(700f, 0.07f, WaveType.Square, 0.07f, 0f)));
         }
+
+        /* ---------------- 背景音乐 ---------------- */
+
+        // 红白机坦克大战风格战斗循环 BGM：168 BPM、16 分音符网格、8 小节（约 11.4 秒）
+        // 风格参照：小调快速进行曲——八分音符根音八度推进低音 + 方波主旋律 + 琶音和声 + 进行鼓点
+        public static AudioClip BgmClip()
+        {
+            AudioClip cached;
+            if (Cache.TryGetValue("bgm", out cached)) return cached;
+
+            const float beat = 60f / 168f;       // 168 BPM
+            const float step = beat * 0.25f;     // 16 分音符
+            const float total = 8f * 4f * beat;  // 8 小节
+
+            float[] mel =
+            {
+                440f, 0f, 523f, 659f, 880f, 0f, 784f, 659f, 523f, 0f, 440f, 0f, 392f, 440f, 523f, 0f,
+                659f, 0f, 0f, 880f, 784f, 659f, 587f, 0f, 523f, 0f, 440f, 0f, 494f, 523f, 587f, 659f,
+                349f, 0f, 440f, 523f, 698f, 0f, 659f, 523f, 440f, 0f, 349f, 0f, 392f, 440f, 523f, 0f,
+                392f, 0f, 494f, 587f, 784f, 0f, 698f, 587f, 494f, 0f, 392f, 0f, 440f, 494f, 523f, 587f,
+                440f, 0f, 523f, 659f, 880f, 0f, 988f, 880f, 659f, 0f, 784f, 0f, 880f, 0f, 0f, 0f,
+                784f, 659f, 523f, 659f, 880f, 0f, 784f, 0f, 659f, 587f, 523f, 494f, 440f, 0f, 0f, 0f,
+                349f, 0f, 440f, 523f, 698f, 0f, 659f, 523f, 587f, 0f, 523f, 0f, 440f, 523f, 698f, 0f,
+                392f, 0f, 494f, 587f, 784f, 0f, 880f, 784f, 698f, 587f, 494f, 587f, 784f, 0f, 0f, 0f
+            };
+            var melNotes = new float[mel.Length][];
+            for (int i = 0; i < mel.Length; i++)
+                melNotes[i] = ToneBuf(mel[i] > 0f ? mel[i] : 1f, step, WaveType.Square, mel[i] > 0f ? 0.13f : 0.0002f, 0f);
+
+            float[] bass =
+            {
+                110f, 220f, 110f, 220f, 110f, 220f, 110f, 220f,
+                110f, 220f, 110f, 220f, 110f, 220f, 110f, 220f,
+                87f, 175f, 87f, 175f, 87f, 175f, 87f, 175f,
+                98f, 196f, 98f, 196f, 98f, 196f, 98f, 196f,
+                110f, 220f, 110f, 220f, 110f, 220f, 110f, 220f,
+                110f, 220f, 110f, 220f, 110f, 220f, 110f, 220f,
+                87f, 175f, 87f, 175f, 87f, 175f, 87f, 175f,
+                98f, 196f, 98f, 196f, 98f, 196f, 98f, 196f
+            };
+            var bassNotes = new float[bass.Length][];
+            for (int i = 0; i < bass.Length; i++)
+                bassNotes[i] = ToneBuf(bass[i], step * 2f, WaveType.Triangle, 0.17f, 0f);
+
+            float[] arp =
+            {
+                220f, 262f, 330f, 262f, 220f, 262f, 330f, 262f,
+                220f, 262f, 330f, 262f, 220f, 262f, 330f, 262f,
+                175f, 220f, 262f, 220f, 175f, 220f, 262f, 220f,
+                196f, 247f, 294f, 247f, 196f, 247f, 294f, 247f,
+                220f, 262f, 330f, 262f, 220f, 262f, 330f, 262f,
+                220f, 262f, 330f, 262f, 220f, 262f, 330f, 262f,
+                175f, 220f, 262f, 220f, 175f, 220f, 262f, 220f,
+                196f, 247f, 294f, 247f, 196f, 247f, 294f, 247f
+            };
+            var arpNotes = new float[arp.Length][];
+            for (int i = 0; i < arp.Length; i++)
+                arpNotes[i] = ToneBuf(arp[i], step * 2f, WaveType.Square, 0.05f, 0f);
+
+            // 鼓点：底鼓（1、3 拍）+ 军鼓（2、4 拍）+ 八分音符轻踩镲
+            var percNotes = new float[32][];
+            for (int barIdx = 0; barIdx < 8; barIdx++)
+            {
+                for (int k = 0; k < 4; k++)
+                {
+                    if (k == 0 || k == 2)
+                        percNotes[barIdx * 4 + k] = ToneBuf(55f, 0.08f, WaveType.Triangle, 0.2f, 0f);
+                    else
+                        percNotes[barIdx * 4 + k] = NoiseBuf(0.05f, 0.06f, 3400f);
+                }
+            }
+
+            var hatNotes = new float[64][];
+            for (int i = 0; i < hatNotes.Length; i++)
+                hatNotes[i] = NoiseBuf(0.02f, 0.025f, 6500f);
+
+            float[] music = Mix(
+                Overlap(melNotes, step, total),
+                Mix(
+                    Overlap(bassNotes, step * 2f, total),
+                    Mix(
+                        Overlap(arpNotes, step * 2f, total),
+                        Mix(Overlap(percNotes, beat, total), Overlap(hatNotes, beat * 0.5f, total)))));
+
+            cached = Clip("bgm", music);
+            return cached;
+        }
     }
 }

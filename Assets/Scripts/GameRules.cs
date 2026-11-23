@@ -225,11 +225,19 @@ namespace TankBattle
             int ty1 = Mathf.CeilToInt(y1 / Conf.Tile) - 1;
             bool baseHit = false;
 
+            // 施放者所在格除外：坦克足印比格子小 4px 且有偏移，光束矩形与脚下格子重叠，
+            // 若脚下是草地会被误变成灼烧地（站在草丛放大招烧死自己），冰面/灼烧也会被误刷新/清空
+            int selfX0 = Mathf.FloorToInt(t.X / Conf.Tile);
+            int selfX1 = Mathf.FloorToInt((t.X + t.Size - 1f) / Conf.Tile);
+            int selfY0 = Mathf.FloorToInt(t.Y / Conf.Tile);
+            int selfY1 = Mathf.FloorToInt((t.Y + t.Size - 1f) / Conf.Tile);
+
             for (int ty = ty0; ty <= ty1; ty++)
             {
                 for (int tx = tx0; tx <= tx1; tx++)
                 {
                     if (tx < 0 || ty < 0 || tx >= Conf.Cols || ty >= Conf.Rows) continue;
+                    if (tx >= selfX0 && tx <= selfX1 && ty >= selfY0 && ty <= selfY1) continue;
                     if (!RectHits(x0, y0, x1 - x0, y1 - y0, tx * Conf.Tile, ty * Conf.Tile, Conf.Tile, Conf.Tile)) continue;
 
                     TileType tile = G.Grid[ty, tx];
@@ -660,6 +668,8 @@ namespace TankBattle
 
         void FinalizeEnd()
         {
+            if (bgmSrc != null) bgmSrc.Stop();
+
             if (G.EndKind == "clear")
             {
                 G.State = "stageclear";

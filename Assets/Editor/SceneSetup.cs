@@ -18,25 +18,39 @@ namespace TankBattle.EditorTools
         }
 
         [MenuItem("Tank Battle/创建主场景 (Create Main Scene)")]
-        public static void CreateMainScene()
+        public static void CreateMainScene() => CreateMainScene(true);
+
+        // interactive=false 表示首次自动生成（不弹任何对话框）
+        static void CreateMainScene(bool interactive)
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode) return;
 
             if (!Directory.Exists(SceneFolder)) Directory.CreateDirectory(SceneFolder);
 
-            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
-            EditorSceneManager.SaveScene(scene, ScenePath);
-            EditorSceneManager.CloseScene(scene, true);
-
-            AddToBuildSettings();
-            AssetDatabase.Refresh();
-
-            // 若当前没有已保存的场景（Untitled），自动打开刚生成的主场景
             var active = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
             if (string.IsNullOrEmpty(active.path))
             {
-                EditorSceneManager.OpenScene(ScenePath);
+                // 工程刚打开时活动场景是未保存的 Untitled，Unity 禁止此时以 Additive 模式新建场景
+                if (interactive && active.isDirty &&
+                    !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                {
+                    return; // 用户在保存对话框中取消
+                }
+
+                // Single 模式在 Untitled 场景下可用，生成完全空的主场景并保持打开
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                EditorSceneManager.SaveScene(scene, ScenePath);
             }
+            else
+            {
+                // 已有已保存场景打开时沿用 Additive 流程，不打扰当前工作场景
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+                EditorSceneManager.SaveScene(scene, ScenePath);
+                EditorSceneManager.CloseScene(scene, true);
+            }
+
+            AddToBuildSettings();
+            AssetDatabase.Refresh();
 
             Debug.Log("Tank Battle：已生成主场景 " + ScenePath + "（场景可为空，运行期由 Bootstrap 自动搭建）");
         }
@@ -45,7 +59,7 @@ namespace TankBattle.EditorTools
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode) return;
             if (File.Exists(ScenePath)) return;
-            CreateMainScene();
+            CreateMainScene(false);
         }
 
         static void AddToBuildSettings()

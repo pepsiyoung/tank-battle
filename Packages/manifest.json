@@ -14,7 +14,8 @@
     "com.unity.modules.ui": "1.0.0",
     "com.unity.modules.uielements": "1.0.0",
     "com.unity.modules.unitywebrequest": "1.0.0",
-    "cn.tuanjie.codely.bridge": "1.0.92"
+    "cn.tuanjie.codely.bridge": "1.0.92",
+    "cn.tuanjie.ai.generators": "file:../.codely-cli/extensions/TJGenerators/Packages/cn.tuanjie.ai.generators"
   },
   "scopedRegistries": [
     {

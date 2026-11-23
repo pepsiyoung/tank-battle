@@ -719,8 +719,8 @@ namespace TankBattle
             side = Mathf.Max(220f, side);
 
             gc.View.Cam.orthographicSize = 13f * Screen.height / (2f * side);
-            // 触屏时把镜头略微下移，让战场整体上移，给底部虚拟按键留出空间
-            gc.View.Cam.transform.position = new Vector3(0f, touch ? -1.1f : 0f, -10f);
+            // 3D 俯视相机：高度与触屏偏移由 SceneView 统一管理
+            gc.View.ApplyCameraMount(touch);
 
             // 剩余敌军图标呼吸闪烁（对应网页版的 blink 动画）
             float pulse = 0.55f + Mathf.Abs(Mathf.Sin(Time.unscaledTime * 2.2f)) * 0.45f;
